@@ -1,6 +1,8 @@
 # Handoff — `istefox/obsidian-mcp-connector` (was `obsidian-mcp-tools`)
 
-> **Aggiornato 2026-05-10 (deep audit closure follow-up — CLAUDE.md + README refresh): 2 finding doc-drift residui dal deep audit RISOLTI in successione: (1) CLAUDE.md "Current versions"/"Project status"/"Pending work" sezioni stale 13 giorni refreshed ([commit `a659979`](https://github.com/istefox/obsidian-mcp-connector/commit/a659979)); (2) README "19 tools work without LRA" → "25 tools" su 2 occorrenze (linea 26 + footnote `[^4]`) + bonus nota su 0.4.5 dynamic LRA-port read via #79/#90 nella footnote ([commit `8954627`](https://github.com/istefox/obsidian-mcp-connector/commit/8954627)). Consistency interna README ora coerente su 4/4 tool count references (26 totali / 25 LRA-free). Delta check commenti 24h: ZERO novità rilevanti — tutti i thread tracciati invariati (fork #88 closed mio, #54 closed mio, #67/#68/#77 quiescenti dal 2026-05-04; upstream cluster invariato dal 2026-05-08 16:23Z; **store #11919 untouched 3+ giorni, 0 reviews/0 review_requests/0 human assignees, week 4/8 silenzio normale**); folotp attivo sul suo `folotp/organon-plugin` personale (non verso fork); marcoaperez day 5/14 silenzio. **HEAD `feat/http-embedded` = `8954627`** (13 commit avanti vs #87 baseline pre-2026-05-08). Doc-drift findings residui: 2 (markdown-patch#11 folotp informativo non-actionable + 19 dangling commits cosmetic).**
+> **Aggiornato 2026-05-11 mattina (`0.4.6` SHIPPED — cycle 7 closed: batch di 6 PR merged 2026-05-07→2026-05-11 in singolo cut chiudendo 4 issue. PR #93 marcoaperez `rename_vault_file` (40-min review→merge turnaround) + PR #92 ENOTEMPTY abs-path leak fix #88 + PR #91 migration UX #78 + PR #90 LRA-port unhardcode #79 + PR #87 test backfill + PR #89 mock helper. Tools 26→27. Commit bump `d3019ee` + CHANGELOG promote `565fb80`. CI Release [run 25656023671](https://github.com/istefox/obsidian-mcp-connector/actions/runs/25656023671) ✅ + CI check [run 25656022693](https://github.com/istefox/obsidian-mcp-connector/actions/runs/25656022693) ✅. Convenzione rename-side fail-loud canonicizzata pubblicamente. Round-7 verify ask postato a folotp su #54 ([4418405362](https://github.com/istefox/obsidian-mcp-connector/issues/54#issuecomment-4418405362), 5 step, focus link-integrity). HEAD `565fb80`).**
+>
+> Storico (precedente): **2026-05-10 (deep audit closure follow-up — CLAUDE.md + README refresh): 2 finding doc-drift residui dal deep audit RISOLTI in successione: (1) CLAUDE.md "Current versions"/"Project status"/"Pending work" sezioni stale 13 giorni refreshed ([commit `a659979`](https://github.com/istefox/obsidian-mcp-connector/commit/a659979)); (2) README "19 tools work without LRA" → "25 tools" su 2 occorrenze (linea 26 + footnote `[^4]`) + bonus nota su 0.4.5 dynamic LRA-port read via #79/#90 nella footnote ([commit `8954627`](https://github.com/istefox/obsidian-mcp-connector/commit/8954627)). Consistency interna README ora coerente su 4/4 tool count references (26 totali / 25 LRA-free). Delta check commenti 24h: ZERO novità rilevanti — tutti i thread tracciati invariati (fork #88 closed mio, #54 closed mio, #67/#68/#77 quiescenti dal 2026-05-04; upstream cluster invariato dal 2026-05-08 16:23Z; **store #11919 untouched 3+ giorni, 0 reviews/0 review_requests/0 human assignees, week 4/8 silenzio normale**); folotp attivo sul suo `folotp/organon-plugin` personale (non verso fork); marcoaperez day 5/14 silenzio. **HEAD `feat/http-embedded` = `8954627`** (13 commit avanti vs #87 baseline pre-2026-05-08). Doc-drift findings residui: 2 (markdown-patch#11 folotp informativo non-actionable + 19 dangling commits cosmetic).**
 >
 > Storico (precedente): **2026-05-09 mattina (sessione "risolviamo le pending una a una" + deep audit di chiusura): folotp #54 cross-tracker ack — ruleset General narrow `feat/**` → `feat/http-embedded` esatto + cleanup orphan branch `feat/0.4-migration-ux-cleanup` — FR #88 SHIPPED (PR #92 squash `e01617f`) — issue #88 chiusa manualmente — passive items confermati. Post-session cleanup: `fix/73-templates-execute-compat-shim` deleted. Deep audit 16 check su 4 batch ha rivelato 1 finding critico: CHANGELOG.md `[Unreleased]` block era VUOTO. Backfilled in `c5d9f02` con 5 entry ready per `[Unreleased] → [0.4.6]` promote.**
 >
@@ -8,7 +10,74 @@
 >
 > Storico (anteriore): **2026-05-06 mattina (`0.4.5` SHIPPED — commit `0584a51` + bump `29ae191`, CI [run 25418823490](https://github.com/istefox/obsidian-mcp-connector/actions/runs/25418823490) green ~31s, prerelease:false — folotp #86 fix: ENOENT triplicato su `create_vault_file`/`append_to_vault_file`/`execute_template` parent missing + 2 tool nuovi `create_vault_directory` + `delete_vault_directory`; tools 24→26; minAppVersion 0.15.0 → 1.7.2; suite 731/734 verde; #86 closed con close-out comment).** + **2026-05-05 sera tarda (`0.4.4` SHIPPED — cycle 5 closed: list_tags + get_files_by_tag + get_outgoing_links + get_backlinks; tools 20→24; folotp round-5 clean su 0.4.3 ack-ed; CI [run 25393505832](https://github.com/istefox/obsidian-mcp-connector/actions/runs/25393505832) green; commit `5405716`, tag `0.4.4`, prerelease:false).** `0.4.0` → `0.4.1` → `0.4.2` → `0.4.3` → `0.4.4` → **`0.4.5`** shipped consecutivamente, 6 cycle iterativi (5 soak-driven + 1 feature batch). Documento di passaggio di consegne. Self-contained.
 >
+> Aggiornato `0.4.0` → `0.4.1` → `0.4.2` → `0.4.3` → `0.4.4` → `0.4.5` → **`0.4.6`** shipped consecutivamente, 7 cycle iterativi (5 soak-driven + 2 feature batch). Documento di passaggio di consegne. Self-contained.
+>
 > **Per il quadro architetturale completo** (gotcha, stack, convenzioni di codice): leggere **`CLAUDE.md`** in radice. Questo file è la sintesi *operativa*; CLAUDE.md è la sintesi *tecnica*.
+
+---
+
+## Decisioni di sessione 2026-05-11 mattina — `0.4.6` SHIPPED + cycle 7 closed 🚀
+
+**Trigger**: pull mattina ha trovato 14 commit nuovi su `feat/http-embedded` da 2026-05-07 sera. Verify novità → identificato batch sostanzioso staged in `[Unreleased]` (5 PR merged: #87 test backfill + #89 mock helper + #90 #79 + #91 #78 + #92 #88) + 1 PR OPEN (#93 marcoaperez `rename_vault_file`). Decisione: review #93 → cut 0.4.6 batch.
+
+### Sequence eseguita
+
+**1. PR #93 review cycle (high-quality contributor turnaround)**
+
+- 2026-05-10 13:25Z marcoaperez OPEN PR (308 add/5 del, 7 file, 8 test cases, closes #67)
+- 2026-05-11 06:19Z **mia review COMMENTED** ([review id `4418348905`](https://github.com/istefox/obsidian-mcp-connector/pull/93)) con substantive ack + 2 MED finding:
+  - **MED1 — Stale branch**: 2 commit (`8954627` + `fc05d0b`) atterrati dopo apertura, conflitti README su tool counts. Reconciliation proposta: "26 tools without LRA" (era 25 + 1 rename) + preservare footnote `0.4.5` dynamic-port note.
+  - **MED2 — Regression-guard test non updated**: CI fail `tools/list exposes the full registry` ([run 25629908177](https://github.com/istefox/obsidian-mcp-connector/actions/runs/25629908177)). Sua scope `bun test src/features/mcp-tools/tools/` troppo stretta — il test vive in `mcp-transport/services/`. Fix: 1-line insert alfabetico tra `patch_vault_file` e `search_vault`.
+  - **Design ack su fail-loud su missing parent**: deviazione esplicita dalla mia convenzione "auto-create across the connector" del #86, MA accettata come **eccezione load-bearing** — rename muove dati existenti valuable (typo = orphan dir + valuable file rilocato), create produce contenuti nuovi (typo = note in posto strano). Asymmetric by design.
+  - **Offerta esplicita**: rebase+amend lui o io fix-forward (pattern PR #83).
+- 2026-05-11 06:59Z marcoaperez **40-min turnaround**: rebase + entrambi finding fixati. Bonus catch: anche `toHaveLength(26)→(27)` su registry guard (io avevo solo flagged l'array; lui ha visto la length assertion separata).
+- 2026-05-11 07:16Z mia squash-merge `4ffc68f` con close-out comment + cluster pointer next candidate (`get_recent_files` smallest-wins-first o `execute_dataview_query` high-value).
+- 2026-05-11 ~07:17Z chiusura #67 manualmente con summary completo + convenzione rename-side documentata pubblicamente ([comment 4418361665](https://github.com/istefox/obsidian-mcp-connector/issues/67#issuecomment-4418361665)). Squash subject/body non aveva triggerato il GitHub keyword auto-close.
+
+**2. 0.4.6 cut sequence**
+
+- 2026-05-11 07:19:01Z **bump** — `FORCE=true bun run version patch` da root → commit `d3019ee` + tag `0.4.6` + push branch + tag.
+- 2026-05-11 07:19:0XZ **CI start** — Release run `25656023671` + CI check run `25656022693` triggered.
+- ~07:20Z **CI verde** entrambe in parallel (Release ~30s asset build + sign).
+- 07:21Z **CHANGELOG promote** — commit `565fb80` `chore(changelog): promote [Unreleased] entries to [0.4.6] block` (pattern speculare a `d3efb4b` 0.4.4 + `15c1689` 0.4.5).
+- 07:22Z **#54 cross-link closure** — [comment 4418378033](https://github.com/istefox/obsidian-mcp-connector/issues/54#issuecomment-4418378033) con batch table + asset summary + BRAT update window.
+
+**Cycle time**: ~3 min cut + CI + housekeeping. Batch building over 4 giorni (#87 2026-05-07 → #93 2026-05-11).
+
+**3. Round-7 verify ask a folotp** ([#54 comment 4418405362](https://github.com/istefox/obsidian-mcp-connector/issues/54#issuecomment-4418405362)): 5 step explicit ask, focus link-integrity di `rename_vault_file` come load-bearing claim primario + secondary item su delete_vault_directory ENOTEMPTY message format + searchVault LRA-port reconfig + get_server_info.localTransport. No xxd byte-exact pre/post (questo è feature-batch verify, non soak-driven). Asimmetria con i precedenti round (round-6 era close-out senza explicit verify ask, round-7 lo esplicita).
+
+### Convenzione rename-side canonizzata pubblicamente
+
+Documentata in [PR #93 squash body](https://github.com/istefox/obsidian-mcp-connector/commit/4ffc68f) + [#67 closure comment](https://github.com/istefox/obsidian-mcp-connector/issues/67#issuecomment-4418361665) come precedent stabile:
+
+- **Move-existing-data tools** (`rename_vault_file`, eventuale future `move_*`) → **fail-loud** on missing destination parent. Reason: rename muove dati existenti valuable → typo in `to` rewrites valuable file into orphan directory (costo alto).
+- **Create-new-content tools** (`create_vault_file`, `append_to_vault_file`, `execute_template`) → **auto-create** ancestor chain (`ensureFolderExists` mkdirp). Reason: typo lands new note in posto strano (costo basso).
+
+Asymmetric by design, cost-shape del typo dicta la scelta. Eccezione load-bearing alla convenzione "auto-create across the connector" di #86 closure.
+
+### State change (vs 0.4.5)
+
+- HEAD `feat/http-embedded` `29ae191` → **`565fb80`** (15 commit avanti, include cycle 7 batch)
+- Tag: 0.4.5 → **0.4.6** (latest)
+- Tools: 26 → **27** (rename_vault_file in "Vault file ops")
+- Open PR: 0 (era 1 PR #93)
+- Open issue: 4 closed (#67/#79/#78/#88) + tracker #54 ancora open + 2 RFC dormienti (#68 rename_heading, #77 partial-read)
+- CHANGELOG `[Unreleased]` block: empty al top per next cycle
+- Marcoaperez pipeline: 2/5+ PR delivered → conversion confidence ~**95%**
+
+### Methodology applied
+
+- **Validated-contributor engagement rule**: review #93 entro le ~24h dell'OPEN, no further delay. PR-author empirically <40-min turnaround → rapid cycle vindicated.
+- **Foundational read-fully-analyze rule**: PR body read end-to-end + cross-reference con #67 RFC + #86 closure precedent + grep di tutti i vault.create call sites pre-merge. Caught il design tension (fail-loud vs auto-create) come issue da disambiguate esplicitamente nella review invece di silently accept o silently reject.
+- **Authority preservation rule**: squash commit ha `Authored-by: marcoaperez` preservato; il close-out comment ack del bonus catch (`toHaveLength` bump) rinforza il signal positivo verso il contributor.
+- **Multi-point ack rule** applicata sul review: substantive open + 2 finding chiaramente enumerated + design ack come terzo punto distinto + offerta esplicita di fix-forward (asymmetric labor opt-in).
+
+### Pending immediate post-session (al 2026-05-11 mattina)
+
+- **Folotp round-7 verify** atteso 24-72h post-BRAT update (window: 2026-05-12 → 2026-05-14). 5-step ask già pubblicato, shape della verify esplicita.
+- **Marcoaperez next next PR** dopo merge #93 — atteso 1-2 settimane (candidate `get_recent_files` smallest-wins-first oppure `execute_dataview_query` high-value-higher-surface, sua scelta).
+- **Store PR #11919** week 5/8 silent monitor — routine settimanale `trig_015yL8D3VNao7nhRKjBu95ZK` lunedì 2026-05-18. Last touch del PR = mio reply a Jajaho 2026-05-07.
+- **RFC dormienti** #68 (rename_heading) + #77 (partial-read get_vault_file) — future scope, no commitment.
 
 ---
 
