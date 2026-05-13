@@ -73,6 +73,28 @@
 - Marcoaperez conversion confidence: ~95% → **~98%** (3 PR shipped consecutive + #95 OPEN addressing review feedback + #77 architectural decision request format esemplare)
 - Mia April triage su #77 explicitly reversed publicly (calling Option A in-process)
 
+### Update post-bump 2026-05-13 13:25Z — NUOVO bug folotp #96 received, fix pending Stefano
+
+Folotp ha aperto **NUOVA issue #96 a 12:55Z** (~5 min dopo PR #97 merge, ~30 min dopo mio folotp ack su #77): [`delete_vault_file` ignores Obsidian's "Deleted files" setting — permanently deletes instead of trashing](https://github.com/istefox/obsidian-mcp-connector/issues/96). Bug report + suggested fix esplicito: `app.fileManager.trashFile(file)` honours il vault setting automatically (system trash / `.trash/` folder / permanently delete).
+
+**Triage scope investigated** (NOT yet posted publicly — Stefano implementerà a casa):
+
+- ✅ `tools/deleteVaultFile.ts:26` — `app.vault.delete(file)` (folotp bug, primary)
+- ✅ `tools/deleteActiveFile.ts:29` — same bug, sister tool (plus existing test asserts current pattern verbatim, needs update)
+- ❌ `tools/deleteVaultDirectory.ts` — **intentional** trash-bypass, esplicito doc in schema describe ("Bypasses the trash setting", "irreversible from MCP"). Out of scope per questo fix.
+
+**Fix shape**: `vault.delete(file)` → `fileManager.trashFile(file)` con cast pattern (mirror del `renameVaultFile.ts` precedent — fileManager runtime API non in `.d.ts`). Plus mock update in `test-setup.ts` per `fileManager.trashFile` + 2 test file assertion updates.
+
+**Effort**: ~30 min. Single-commit branch suggested `fix/96-delete-honours-trash-setting`.
+
+**Priority**: data-loss risk in agentic bulk-delete workflows. Patch surface per 0.4.7 cycle.
+
+**Triage draft saved** in `/tmp/issue96-triage.md` (NOT POSTED — Stefano farà personalmente da casa, plus posting + fix è naturale single sequence). Triage content è ready se Stefano vuole pre-postarlo prima del coding o posting unified close-out comment quando fix è merged.
+
+**Marcoaperez non involved** — bug è MIA surface da fixare (sole maintainer pattern + folotp's suggested fix è esplicito). NO delegation framing pubblica (memoria [[feedback-no-contributor-delegation-obsidian-mcp]]).
+
+**Folotp track record update**: cycle 7 closed bilateral + #77 lockin Option A + bug #96 filed con suggested fix all stessa giornata 2026-05-13. Engagement quality consistente.
+
 ### Update post-bump 2026-05-13 13:22Z — PR #97 `get_vault_file_partial` SHIPPED + #77 CLOSED ✅✅
 
 Sequence rapida post-folotp-lockin: folotp ack su #77 a 12:24Z → mio reply (Versione B no-delegation) a 12:31Z → marcoaperez **PR #97 OPEN a 13:14Z** (45 min dopo folotp lockin, 43 min dopo mio reply — pickup autonomo dal thread senza che lo dirigessi). PR è esemplare: 783 add/5 del, 6 file, 24 test cases following folotp's prioritization heuristic verbatim (PRIMARY depth frontmatter × 6 + document-map × 5; SECONDARY positive/missing/ambiguous heading × 5 + block × 4; Common × 4). CI green dal primo run — `bun.lock` discipline applicata preventively (citazione esplicita del MED1 da #95 nel test plan). **Marcoaperez ha catturato onestamente il mio off-by-one error** nel #77 decision comment ("27→29 off-by-two" → corretto "27→28 clean +1") — pattern di authority handling esemplare.
