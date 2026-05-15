@@ -1,6 +1,8 @@
 # Handoff — `istefox/obsidian-mcp-connector` (was `obsidian-mcp-tools`)
 
-> **Aggiornato 2026-05-13 mattina+mid-day (PR #94 marcoaperez `get_recent_files` shipped → PR #95 review follow-ups SHIPPED 11:58Z commit `39adf27` + 16-min marcoaperez fix turnaround → #68 + #77 thread engagement deep cycle): sessione densa con 11 azioni concrete + 2 sub-agent Explore parallel research. PR #94 (`get_recent_files`) review APPROVED + squash-merged commit `11fb992` (marcoaperez 3rd PR consecutive, Author preserved). Tools 27→28. Marcoaperez ha aperto 2h dopo merge **PR #95 follow-ups** indirizzando i 3 LOW della mia review (Intl.Collator tiebreaker + one-shot logger.warn module-flag + 2 new test cases 10→12); CI red su `bun install --frozen-lockfile` — investigated via Explore agent: zero dep changes, `Intl.Collator` native, root cause = missed `bun.lock` commit. Review COMMENTED postata con fix-forward esplicito ([PR #95 comment](https://github.com/istefox/obsidian-mcp-connector/pull/95)). Marcoaperez ha anche aperto **#77 architectural decision question** (in-process vs LRA wrapper per `get_vault_file_partial`); risposta deep [#77 comment `4440557399`](https://github.com/istefox/obsidian-mcp-connector/issues/77#issuecomment-4440557399) calling **Option A (in-process)** reversing mia April triage — reasoning: 0.4.x LRA-optional crystallization + `templatesCompat` analogy era compat-debt-collector non forward-looking + 5/5 sibling pattern verified in-tree + folotp's motivation example (classify frontmatter su 30KB note) IS LRA-less vault use case + `patchHelpers.ts` precedent prova local parsing production-ready + LRA-reuse "win" è only ~10 LOC saving offset da HTTP-mock brittleness. **#68 follow-up update** postato ([#68 comment `4439418611`](https://github.com/istefox/obsidian-mcp-connector/issues/68#issuecomment-4439418611)) bridging soft-promise dell'ack folotp #54 round-7: gate 1/2 clear (rename_vault_file ships ✅, store accept ⏳ week 5/8), convention pin canonicized publicly + T1 refinement "link integrity preserved" applied to rename_heading verify criterion + walker invitation re-pinned (marcoaperez 3 PR shipped, conversion confidence ~98%). **Memory rule v2 refinement**: trigger list espansa (italiano+inglese: posta/go/ship/vai/procedi/fai/manda/mergia/composite) + counter-examples + scope explicit. **Settings autoMode.allow rule** aggiunta `~/.claude/settings.json` per ridurre classifier friction su outreach (memoria già protegge drafts-first behavioralmente). HEAD `8ccc631 → 11fb992` (+1 via #94 merge). Pending immediate: PR #95 lockfile fix da marcoaperez (~24h), folotp #77 objection window (24-48h), marcoaperez #77 implementation kickoff post-window. Store PR #11919 week 5/8 silenzio normale.**
+> **Aggiornato 2026-05-15 mattina (folotp bug burst overnight: 3 NEW issues filed in 24h + triage batch posted, fix pending Stefano stasera): folotp ha aperto 2 nuove issue ieri sera (2026-05-14): [#98](https://github.com/istefox/obsidian-mcp-connector/issues/98) `pre-warm: mcp-remote --help throws ERR_INVALID_URL on Node 24` (LOW, root cause upstream `mcp-remote` parseCommandLineArgs su Node 24, plugin già detect+success ma stderr stack trace ancora visible) + [#99](https://github.com/istefox/obsidian-mcp-connector/issues/99) `search_vault_smart ignores semanticSearch.provider:"smart-connections" — always invokes native Transformers.js pipeline` (HIGH, handler `searchVaultSmart.ts` bypassa il `providerFactory` esistente + va direct a native `ensurePipeline`/`from_pretrained` regardless of setting; misleading "not ready" error). Plus [#96](https://github.com/istefox/obsidian-mcp-connector/issues/96) ancora pending (delete_vault_file trash bypass, già scoped 2026-05-13 mid-day). **Triage batch posted 2026-05-15** ([#96 comment 4457246546](https://github.com/istefox/obsidian-mcp-connector/issues/96#issuecomment-4457246546) + [#98 comment 4457246967](https://github.com/istefox/obsidian-mcp-connector/issues/98#issuecomment-4457246967) + [#99 comment 4457247133](https://github.com/istefox/obsidian-mcp-connector/issues/99#issuecomment-4457247133)) — tutti committed publicly come MIA ownership del fix-batch (`fix/96-honours-trash-setting`, etc.); marcoaperez non taggato in nessuno (conforme [[feedback-no-contributor-delegation-obsidian-mcp]]). **Code investigation done** preliminare per #98 (`preWarm.ts:138/164/192`) e #99 (`searchVaultSmart.ts` + `semantic-search/services/providerFactory.ts` + `plugin.semanticSearchState.provider` esistente in `main.ts:86`); fix surface pinned nei triage drafts. Stefano farà fix batch stasera a casa: drafts saved a `/tmp/issue96-triage.md` + `/tmp/issue98-triage.md` + `/tmp/issue99-triage.md` per reference. **Folotp engagement burst observation**: 3 bug filed in 24h, tutti con triage-grade detail (root cause traced, suggested fix, environment, repro steps). Engagement quality consistente high. Marcoaperez silenzio 48h post-#97 merge (normal stochastic). Store PR #11919 invariato 2026-05-07 (week 6/8). Upstream `jacksteamdev` silent push 2026-05-13 16:11-16:13Z (0.2.32 + lockfile + 0.2.33 + readme update) noto, no movement since.**
+>
+> Storico (precedente): **2026-05-13 mattina+mid-day (PR #94 marcoaperez `get_recent_files` shipped → PR #95 review follow-ups SHIPPED 11:58Z commit `39adf27` + 16-min marcoaperez fix turnaround → #68 + #77 thread engagement deep cycle): sessione densa con 11 azioni concrete + 2 sub-agent Explore parallel research. PR #94 (`get_recent_files`) review APPROVED + squash-merged commit `11fb992` (marcoaperez 3rd PR consecutive, Author preserved). Tools 27→28. Marcoaperez ha aperto 2h dopo merge **PR #95 follow-ups** indirizzando i 3 LOW della mia review (Intl.Collator tiebreaker + one-shot logger.warn module-flag + 2 new test cases 10→12); CI red su `bun install --frozen-lockfile` — investigated via Explore agent: zero dep changes, `Intl.Collator` native, root cause = missed `bun.lock` commit. Review COMMENTED postata con fix-forward esplicito ([PR #95 comment](https://github.com/istefox/obsidian-mcp-connector/pull/95)). Marcoaperez ha anche aperto **#77 architectural decision question** (in-process vs LRA wrapper per `get_vault_file_partial`); risposta deep [#77 comment `4440557399`](https://github.com/istefox/obsidian-mcp-connector/issues/77#issuecomment-4440557399) calling **Option A (in-process)** reversing mia April triage — reasoning: 0.4.x LRA-optional crystallization + `templatesCompat` analogy era compat-debt-collector non forward-looking + 5/5 sibling pattern verified in-tree + folotp's motivation example (classify frontmatter su 30KB note) IS LRA-less vault use case + `patchHelpers.ts` precedent prova local parsing production-ready + LRA-reuse "win" è only ~10 LOC saving offset da HTTP-mock brittleness. **#68 follow-up update** postato ([#68 comment `4439418611`](https://github.com/istefox/obsidian-mcp-connector/issues/68#issuecomment-4439418611)) bridging soft-promise dell'ack folotp #54 round-7: gate 1/2 clear (rename_vault_file ships ✅, store accept ⏳ week 5/8), convention pin canonicized publicly + T1 refinement "link integrity preserved" applied to rename_heading verify criterion + walker invitation re-pinned (marcoaperez 3 PR shipped, conversion confidence ~98%). **Memory rule v2 refinement**: trigger list espansa (italiano+inglese: posta/go/ship/vai/procedi/fai/manda/mergia/composite) + counter-examples + scope explicit. **Settings autoMode.allow rule** aggiunta `~/.claude/settings.json` per ridurre classifier friction su outreach (memoria già protegge drafts-first behavioralmente). HEAD `8ccc631 → 11fb992` (+1 via #94 merge). Pending immediate: PR #95 lockfile fix da marcoaperez (~24h), folotp #77 objection window (24-48h), marcoaperez #77 implementation kickoff post-window. Store PR #11919 week 5/8 silenzio normale.**
 >
 > Storico (precedente): **2026-05-12 mattina (folotp round-7 verify ack — cycle 7 closed bilaterally ✅): folotp ha postato [#54 verify comment `4426895905`](https://github.com/istefox/obsidian-mcp-connector/issues/54#issuecomment-4426895905) 2026-05-12T02:40Z (~36h post BRAT-window opening) con **11/11 match** sul round-7 ask + 3/3 carryover spot-check (#80/#81/block-in-fenced) byte-equal pre/post + #74 zero-prefix invariant esteso a `rename_vault_file source-not-found`. Three-for-one ENOTEMPTY scrub validated (rmdir-trailer removed + abs path suppressed + actionable hint integrated). `localTransport` promosso a 3° confirmed-positive HTTP-embedded chain-id signal. **Refinement load-bearing su T1**: folotp ha esplicitamente proposto la framing "link integrity preserved" come operativamente più debole di "link text rewritten" e più forte di "link removed". Mio ack [#54 comment `4428953668`](https://github.com/istefox/obsidian-mcp-connector/issues/54#issuecomment-4428953668): multi-point ack rule applicata (preambolo engagement shape + per-item T1-T4 + carryover + #74 ext + refinement pinning) + soft-bridge condizionale a #68 rename_heading RFC "when that thread next moves".**
 >
@@ -17,6 +19,86 @@
 > Aggiornato `0.4.0` → `0.4.1` → `0.4.2` → `0.4.3` → `0.4.4` → `0.4.5` → **`0.4.6`** shipped consecutivamente, 7 cycle iterativi (5 soak-driven + 2 feature batch). Documento di passaggio di consegne. Self-contained.
 >
 > **Per il quadro architetturale completo** (gotcha, stack, convenzioni di codice): leggere **`CLAUDE.md`** in radice. Questo file è la sintesi *operativa*; CLAUDE.md è la sintesi *tecnica*.
+
+---
+
+## Decisioni di sessione 2026-05-15 mattina — folotp bug burst (3 issues) + triage batch posted, fix pending stasera 🪲
+
+**Trigger**: continuazione sessione post-2026-05-13 (3 PR shipped + #77 closed + #96 filed + handoff fourth addendum). Stefano richiede sweep delta-check al mattino. Sweep ha rivelato **2 nuove issue da folotp ieri sera (2026-05-14)**: #98 pre-warm Node 24 ERR_INVALID_URL (LOW UX noise) + #99 search_vault_smart provider routing bypass (HIGH broken functionality). Plus #96 (delete_vault_file trash bypass, già scoped 2026-05-13 mid-day) ancora pending fix. Totale 3 bug aperti tutti da folotp in 48h.
+
+### Bug burst analisi
+
+**#99 — search_vault_smart provider bypass (HIGH)**:
+- Settings esplicito `semanticSearch.provider: "smart-connections"` validated + persisted in data.json (folotp verbatim)
+- Plugin instance espone `semanticSearchState.provider` (`main.ts:86 + 442`)
+- `providerFactory.ts` exists in `features/semantic-search/services/` con explicit mapping (`provider="native" → always NativeProvider`)
+- BUG: handler `searchVaultSmart.ts` BYPASSA il factory + va direct a native `ensurePipeline` → `from_pretrained`
+- Folotp ha tracciato lo stack call completo nel body issue
+- Misleading error: "Semantic search is not ready" mentre user ha esplicitamente scelto smart-connections (è native non ready, non SC)
+- Severity: broken functionality + setting silently bypassed + misleading error. ~1-2h fix.
+
+**#96 — delete_vault_file trash bypass (HIGH)**:
+- `deleteVaultFile.ts:26` usa `app.vault.delete(file)` → permanent unlink, ignora vault setting "Deleted files"
+- Sister tool `deleteActiveFile.ts:29` stesso bug
+- `deleteVaultDirectory.ts` intentional bypass + esplicito doc, OUT of scope
+- Fix: `vault.delete(file)` → `app.fileManager.trashFile(file)` (folotp suggested + matches `renameVaultFile.ts` precedent di routing destructive ops via `fileManager`)
+- Severity: data-loss risk in agentic bulk-delete workflows. ~30 min fix.
+
+**#98 — pre-warm Node 24 ERR_INVALID_URL (LOW)**:
+- Bug effettivo è in `mcp-remote@latest` upstream (`parseCommandLineArgs` passa `--help` a `new URL()` su Node 24)
+- Plugin già detect non-zero exit + treat-as-success (`preWarm.ts:192`)
+- Stack trace raw ancora surfaced come error all'utente (`preWarm.ts:164` logger.debug stderr unconditionally)
+- Fix: filter expected `ERR_INVALID_URL` shape da stderr quando treat-as-success branch, oppure swap probe shape
+- Severity: UX noise, non functional break. ~30-45 min fix.
+
+### Implementazione (4 azioni concrete)
+
+1. **Sweep delta-check** mattina ha trovato 2 nuove issue + verified 24h+ silenzio su tutti gli altri thread tracciati (#54 closed bilateral, #68 RFC dormant post-mio-follow-up, #67 closed, #77 closed, marcoaperez 48h post-#97 silenzio, store PR #11919 week 6/8 silenzio totale).
+
+2. **Code investigation per #98 + #99** preliminare (#96 era già scoped 2026-05-13):
+   - `searchVaultSmart.ts` exists in `tools/`, `providerFactory.ts` in `semantic-search/services/`, `plugin.semanticSearchState.provider` available — quindi infrastructure è in place, è solo handler dispatch logic da fix
+   - `preWarm.ts:138/164/192` identified come fix surface preciso
+
+3. **3 triage drafted** (`/tmp/issue96-triage.md` riuso da ieri + `/tmp/issue98-triage.md` NEW + `/tmp/issue99-triage.md` NEW): tutti scritti come MIA ownership del fix-batch, NO delegation framing publica, conforme [[feedback-no-contributor-delegation-obsidian-mcp]]. Audit verified: ❌ cluster pointer, ❌ walker invitation, ❌ kickoff X. ✅ tutti.
+
+4. **Triage batch posted** ([#96 4457246546](https://github.com/istefox/obsidian-mcp-connector/issues/96#issuecomment-4457246546) + [#98 4457246967](https://github.com/istefox/obsidian-mcp-connector/issues/98#issuecomment-4457246967) + [#99 4457247133](https://github.com/istefox/obsidian-mcp-connector/issues/99#issuecomment-4457247133)) in ordine cronologico di filing.
+
+### State change
+
+- HEAD `feat/http-embedded` invariato (`6c7aba9`, era già pushed 2026-05-13 fourth addendum)
+- 3 GitHub triage comments shipped 2026-05-15 mattina
+- 0 commit nuovi (no fix code yet)
+- 3 bug aperti pending fix-da-Stefano-stasera
+- Triage drafts saved in `/tmp/` per close-out reference
+
+### Folotp engagement quality observation
+
+Folotp ha filed 3 bug + 2 RFC + 7 cycle clean in 12 giorni:
+- Ogni bug body ha root cause + reproduction + suggested fix shape + environment tag
+- Bug #99 body ha stack trace tracciato fino al code path esatto del native pipeline
+- Bug #96 body ha doc link + suggested fix snippet (`app.fileManager.trashFile`)
+- Bug #98 body ha environment table + repro command + ack che è bug upstream non nostro
+
+Pattern ideale per fork ownership: tester che fa il triage half-job + lascia maintainer al fix half-job. Engagement che paga relationship cost minimal su entrambi i lati.
+
+### Methodology applied
+
+- **Foundational read-fully** (CLAUDE.md § Outreach triage methodology): full body read di entrambi nuove issue + code investigation pre-triage per #98 + #99 (verify provider factory exists, identify exact handler bypass).
+- **Memory rule conformance**: tutti i 3 triage NO delegation framing pubblica (`feedback-no-contributor-delegation-obsidian-mcp`), drafts-first per Stefano sign-off (`feedback-github-outreach-drafts` v2).
+- **Authority preservation**: folotp suggested-fix shape esplicitamente acknowledged + adopted nei triage (#96 + #99). #98 ha author-credit-style wording su upstream root cause tracing.
+
+### Pending immediate post-session (al 2026-05-15 mattina)
+
+- **Fix batch stasera** (Stefano a casa): #99 (HIGH, ~1-2h) → #96 (HIGH, ~30 min) → #98 (LOW, ~30-45 min). Branch suggested `fix/96-98-99-batch-0.4.7-prep` o singoli per cleanness git-bisect.
+- **Close 3 issues** post-merge (squash a non-default branch + Closes #N gap, pattern continuation #78/#79/#88/#77).
+- **Marcoaperez next signal**: passive, day 2/14 post-#97 silenzio. Mock-infra continuity per any future tool ready.
+- **#68 RFC rename_heading**: folotp ha NON risposto al mio follow-up del 2026-05-13 (2 giorni passive). Walker invitation aperta, schema stub MIO commitment storico restored to "queueable" status.
+- **Store PR #11919**: week 6/8 silent. Routine cron lunedì 2026-05-18.
+- **0.4.7 cut**: gated su store accept event. CHANGELOG `[Unreleased]` ha `get_recent_files` + `get_vault_file_partial` accumulati; post-fix-batch aggiungerà 3 entries (delete trash + pre-warm filter + searchVaultSmart provider routing).
+
+### Aritmetic note self-correction
+
+#77 decision comment del 2026-05-13 anticipava "27 → 29 off-by-two correction" su README footnote `[^4]` count. Marcoaperez ha catturato l'errore nel PR #97 body ("clean +1 → 28"). Confermato: README era already updated da PR #94 a "27 tools", quindi PR #97 lo ha portato a "28 tools work without LRA". Stato post-#97: 28/29 tools work without LRA. Future PR (#99 fix non aggiunge tool, solo routing fix) non cambierà counter.
 
 ---
 
