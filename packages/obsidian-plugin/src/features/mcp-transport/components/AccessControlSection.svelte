@@ -8,6 +8,7 @@
   import { generateToken } from "$/features/mcp-transport/services/token";
   import { BIND_HOST, MCP_PATH_PREFIX } from "$/features/mcp-transport/constants";
   import { applyAutoWrite } from "$/features/mcp-client-config";
+  import { globalSettingsMutex } from "$/features/command-permissions";
 
   export let plugin: McpToolsPlugin;
 
@@ -55,12 +56,22 @@
       // 1. Generate fresh token.
       const newToken = generateToken();
 
-      // 2. Persist: load current data, update only the mcpTransport slice.
-      const data = ((await plugin.loadData()) ?? {}) as Record<string, unknown>;
-      const existing = (data.mcpTransport ?? {}) as Record<string, unknown>;
-      await plugin.saveData({
-        ...data,
-        mcpTransport: { ...existing, bearerToken: newToken },
+      // 2. Persist: load current data, update only the mcpTransport
+      //    slice. Serialized through the shared mutex so this write
+      //    cannot clobber a concurrent settings write. The mutex is
+      //    released BEFORE step 4 (mcpTransportSetup), which itself
+      //    acquires the same mutex — keep it non-nested to avoid a
+      //    deadlock.
+      await globalSettingsMutex.run(async () => {
+        const data = ((await plugin.loadData()) ?? {}) as Record<
+          string,
+          unknown
+        >;
+        const existing = (data.mcpTransport ?? {}) as Record<string, unknown>;
+        await plugin.saveData({
+          ...data,
+          mcpTransport: { ...existing, bearerToken: newToken },
+        });
       });
 
       // 3. Tear down the current transport if it is running.

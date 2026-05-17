@@ -1,4 +1,5 @@
 import type McpToolsPlugin from "$/main";
+import { globalSettingsMutex } from "$/features/command-permissions";
 import { logger } from "$/shared";
 import {
   startHttpServer,
@@ -40,25 +41,31 @@ export type SetupResult =
  */
 export async function setup(plugin: McpToolsPlugin): Promise<SetupResult> {
   try {
-    const settings = ((await plugin.loadData()) ?? {}) as Record<
-      string,
-      unknown
-    >;
-    const mcpTransportSettings = (settings.mcpTransport ?? {}) as Record<
-      string,
-      unknown
-    >;
-    let bearerToken = mcpTransportSettings.bearerToken as string | undefined;
+    // Serialize the load→(maybe generate)→save through the shared
+    // mutex so a first-run token write cannot clobber a concurrent
+    // settings write from another feature (data.json is not atomic).
+    const bearerToken = await globalSettingsMutex.run(async () => {
+      const settings = ((await plugin.loadData()) ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const mcpTransportSettings = (settings.mcpTransport ?? {}) as Record<
+        string,
+        unknown
+      >;
+      let token = mcpTransportSettings.bearerToken as string | undefined;
 
-    if (!bearerToken || bearerToken.length < 32) {
-      // No valid token yet — generate a fresh one and persist it.
-      // This only happens on the very first load after plugin install.
-      bearerToken = generateToken();
-      await plugin.saveData({
-        ...settings,
-        mcpTransport: { ...mcpTransportSettings, bearerToken },
-      });
-    }
+      if (!token || token.length < 32) {
+        // No valid token yet — generate a fresh one and persist it.
+        // This only happens on the very first load after plugin install.
+        token = generateToken();
+        await plugin.saveData({
+          ...settings,
+          mcpTransport: { ...mcpTransportSettings, bearerToken: token },
+        });
+      }
+      return token;
+    });
 
     const mcp = await createMcpService({
       app: plugin.app,

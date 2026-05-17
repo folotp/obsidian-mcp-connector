@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import { globalSettingsMutex } from "$/features/command-permissions";
 import { logger } from "$/shared/logger";
 import {
   detectNode,
@@ -88,12 +89,16 @@ async function persistPreWarmCache(
   plugin: PluginLike,
   entry: PreWarmCacheEntry,
 ): Promise<void> {
-  const data =
-    ((await plugin.loadData()) as Record<string, unknown> | null) ?? {};
-  const slice = (data[DATA_KEY] as Record<string, unknown> | undefined) ?? {};
-  await plugin.saveData({
-    ...data,
-    [DATA_KEY]: { ...slice, [SLICE_KEY]: entry },
+  // Serialized through the shared settings mutex: data.json is not
+  // atomic and is shared across features.
+  await globalSettingsMutex.run(async () => {
+    const data =
+      ((await plugin.loadData()) as Record<string, unknown> | null) ?? {};
+    const slice = (data[DATA_KEY] as Record<string, unknown> | undefined) ?? {};
+    await plugin.saveData({
+      ...data,
+      [DATA_KEY]: { ...slice, [SLICE_KEY]: entry },
+    });
   });
 }
 

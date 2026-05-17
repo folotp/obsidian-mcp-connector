@@ -8,8 +8,11 @@ export {
   type CommandPermissionModalOptions,
   type ModalDecision,
 } from "./services/commandPermissionModal";
-export { handleCommandPermissionRequest } from "./services/permissionCheck";
-export { createMutex, type Mutex } from "./services/settingsLock";
+export {
+  createMutex,
+  globalSettingsMutex,
+  type Mutex,
+} from "./services/settingsLock";
 export type { CommandAuditEntry } from "./types";
 export {
   AUDIT_LOG_MAX_ENTRIES,

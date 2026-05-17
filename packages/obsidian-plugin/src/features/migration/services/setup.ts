@@ -1,5 +1,6 @@
 import { Notice, Platform } from "obsidian";
 import type McpToolsPlugin from "$/main";
+import { globalSettingsMutex } from "$/features/command-permissions";
 import { logger } from "$/shared/logger";
 import {
   detectLegacyInstall,
@@ -79,12 +80,14 @@ export async function setupMigration(
       port: transport.server.port,
       token: transport.bearerToken,
       mutatePluginData: async (mutator) => {
-        const current = ((await plugin.loadData()) ?? {}) as Record<
-          string,
-          unknown
-        >;
-        mutator(current);
-        await plugin.saveData(current);
+        await globalSettingsMutex.run(async () => {
+          const current = ((await plugin.loadData()) ?? {}) as Record<
+            string,
+            unknown
+          >;
+          mutator(current);
+          await plugin.saveData(current);
+        });
       },
     };
 
@@ -139,12 +142,14 @@ export async function setupMigration(
 
 async function persistSkipped(plugin: McpToolsPlugin): Promise<void> {
   try {
-    const data = ((await plugin.loadData()) ?? {}) as Record<string, unknown>;
-    const slice =
-      (data[SKIPPED_KEY] as Record<string, unknown> | undefined) ?? {};
-    await plugin.saveData({
-      ...data,
-      [SKIPPED_KEY]: { ...slice, skippedAt: new Date().toISOString() },
+    await globalSettingsMutex.run(async () => {
+      const data = ((await plugin.loadData()) ?? {}) as Record<string, unknown>;
+      const slice =
+        (data[SKIPPED_KEY] as Record<string, unknown> | undefined) ?? {};
+      await plugin.saveData({
+        ...data,
+        [SKIPPED_KEY]: { ...slice, skippedAt: new Date().toISOString() },
+      });
     });
   } catch (err) {
     logger.warn("migration: failed to persist skipped flag", {

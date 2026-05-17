@@ -12,8 +12,9 @@
   //   allow-always  → executes this call AND appends commandId to the
   //                   persistent allowlist (handler's responsibility)
   //
-  // The parent (permissionCheck.ts) decides what to do with each
-  // decision; this component just reports what the user clicked.
+  // The caller (checkCommandPermission in main.ts) decides what to
+  // do with each decision; this component just reports what the user
+  // clicked.
 
   export type Decision = "allow-once" | "allow-always" | "deny";
 
