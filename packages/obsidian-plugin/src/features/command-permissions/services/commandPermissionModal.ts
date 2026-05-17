@@ -4,8 +4,9 @@
  *
  * This is the bridge between:
  *
- *   1. The HTTP handler in `permissionCheck.ts`, which needs to
- *      `await` a user decision before responding to the MCP server;
+ *   1. The in-process permission check (`checkCommandPermission` in
+ *      `main.ts`), which needs to `await` a user decision before
+ *      returning to the MCP tool path;
  *   2. The Svelte UI in `CommandPermissionPrompt.svelte`, which is
  *      a presentational component that just calls back when a button
  *      is clicked.
@@ -67,7 +68,7 @@ export class CommandPermissionModal extends Modal {
    * clicks a button, or when the modal is dismissed, or when the
    * handler explicitly calls `close()` after a timeout. The caller
    * is responsible for racing this against its own timeout if it
-   * wants a bounded wait (see `permissionCheck.ts`).
+   * wants a bounded wait (see `checkCommandPermission` in `main.ts`).
    */
   waitForDecision(): Promise<ModalDecision> {
     return new Promise((resolve) => {

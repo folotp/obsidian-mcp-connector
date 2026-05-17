@@ -2,6 +2,7 @@
   import type McpToolsPlugin from "$/main";
   import { Notice } from "obsidian";
   import { onMount, tick } from "svelte";
+  import { globalSettingsMutex } from "../index";
   import {
     filterPresetAgainstRegistry,
     mergeIntoAllowlist,
@@ -139,26 +140,33 @@
    * not clobbered. Same pattern as ToolToggleSettings.persist().
    */
   async function persist(): Promise<void> {
-    if (busy) return;
+    // `busy` drives the UI-disabled state only; concurrency safety is
+    // the shared process-wide settings mutex (the permission handler
+    // writes the same slice from the MCP path — read+merge under one
+    // lock so neither clobbers the other).
     busy = true;
     try {
-      const data = ((await plugin.loadData()) as Record<string, unknown>) ?? {};
-      const previous =
-        (data.commandPermissions as Record<string, unknown> | undefined) ?? {};
-      const softRateRaw = String(softRateLimitRaw ?? "").trim();
-      const softRateLimit =
-        softRateRaw === ""
-          ? undefined
-          : normalizeSoftRateLimit(Number(softRateRaw));
-      data.commandPermissions = {
-        ...previous,
-        enabled,
-        allowlist: [...allowlist],
-        softRateLimit,
-      };
-      await plugin.saveData(data);
-      softRateLimitRaw =
-        softRateLimit !== undefined ? String(softRateLimit) : "";
+      await globalSettingsMutex.run(async () => {
+        const data =
+          ((await plugin.loadData()) as Record<string, unknown>) ?? {};
+        const previous =
+          (data.commandPermissions as Record<string, unknown> | undefined) ??
+          {};
+        const softRateRaw = String(softRateLimitRaw ?? "").trim();
+        const softRateLimit =
+          softRateRaw === ""
+            ? undefined
+            : normalizeSoftRateLimit(Number(softRateRaw));
+        data.commandPermissions = {
+          ...previous,
+          enabled,
+          allowlist: [...allowlist],
+          softRateLimit,
+        };
+        await plugin.saveData(data);
+        softRateLimitRaw =
+          softRateLimit !== undefined ? String(softRateLimit) : "";
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       new Notice(`Failed to save command permissions: ${message}`);

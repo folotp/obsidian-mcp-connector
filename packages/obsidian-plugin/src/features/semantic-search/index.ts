@@ -1,6 +1,6 @@
 import { type } from "arktype";
 import type McpToolsPlugin from "$/main";
-import { createMutex, type Mutex } from "$/features/command-permissions";
+import { globalSettingsMutex, type Mutex } from "$/features/command-permissions";
 import { logger } from "$/shared/logger";
 import {
   DEFAULT_SEMANTIC_SETTINGS,
@@ -29,9 +29,10 @@ export {
  * `setup()` constructs the real provider via `factoryDeps` (or leaves
  * the NoopProvider in place when omitted — early lifecycle / tests),
  * wires the indexer + embedding store + model downloader, and persists
- * the feature settings under a feature mutex: `plugin.loadData` /
- * `plugin.saveData` are not atomic, so the read-modify-write of this
- * settings slice is serialized (see CLAUDE.md § Gotchas).
+ * the feature settings under the shared `globalSettingsMutex`:
+ * `plugin.loadData` / `plugin.saveData` are not atomic, so the
+ * read-modify-write of this slice is serialized against every other
+ * feature's data.json writes (see CLAUDE.md § Gotchas).
  */
 
 export type SearchOpts = {
@@ -111,10 +112,10 @@ export type SemanticSearchSetupOpts = {
  * persist the merged result if it differs from what was on disk, and
  * return the canonical settings object.
  *
- * Held under the feature mutex: `plugin.loadData` and `plugin.saveData`
- * are not atomic at the plugin level, and any concurrent feature that
- * reads-modifies-writes its own settings slice must serialize its own
- * I/O to avoid lost-update races.
+ * Held under the shared `globalSettingsMutex`: `plugin.loadData` and
+ * `plugin.saveData` are not atomic at the plugin level, and every
+ * feature that reads-modifies-writes its own settings slice must
+ * serialize through the one shared mutex to avoid lost-update races.
  */
 async function loadAndPersistSettings(
   plugin: McpToolsPlugin,
@@ -178,7 +179,10 @@ export async function setup(
   opts: SemanticSearchSetupOpts = {},
 ): Promise<SetupResult> {
   try {
-    const settingsMutex = createMutex();
+    // Shared process-wide mutex: data.json is one file, so this
+    // feature's settings cycle must serialize against every other
+    // feature's, not just against itself (cross-feature lost update).
+    const settingsMutex = globalSettingsMutex;
     const settings = await loadAndPersistSettings(plugin, settingsMutex);
 
     // If factoryDeps is supplied, construct the chooser and pick the

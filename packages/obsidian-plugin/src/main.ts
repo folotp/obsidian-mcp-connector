@@ -14,13 +14,12 @@ import {
 } from "shared";
 import {
   CommandPermissionModal,
-  createMutex,
+  globalSettingsMutex,
   decidePermission,
   appendAuditEntry,
   createRuntimeRateCounter,
   isDestructiveCommand,
   SOFT_RATE_LIMIT_PER_MINUTE,
-  handleCommandPermissionRequest,
 } from "./features/command-permissions";
 import type { CommandAuditEntry } from "./features/command-permissions";
 import { setup as setupCore } from "./features/core";
@@ -58,12 +57,10 @@ import {
 } from "./shared";
 import { logger } from "./shared/logger";
 
-// Module-level singletons for the in-process permission-check path.
-// These parallel the module-level state in
-// `features/command-permissions/services/permissionCheck.ts` but are
-// used by `checkCommandPermission()` (the in-process MCP tool path)
-// rather than by the HTTP handler.
-const _inProcessSettingsMutex = createMutex();
+// Soft-rate counter for the in-process permission-check path. The
+// settings load/modify/save cycle is serialized through the shared
+// `globalSettingsMutex` (process-wide, see settingsLock.ts), not a
+// path-local mutex — data.json is shared across features.
 const _inProcessRateCounter = createRuntimeRateCounter();
 const IN_PROCESS_MODAL_TIMEOUT_MS = 30_000;
 
@@ -125,10 +122,11 @@ export default class McpToolsPlugin extends Plugin {
 
   /**
    * In-process permission check for the `execute_obsidian_command`
-   * MCP tool. Implements the same two-phase mutex policy as the HTTP
-   * handler in `features/command-permissions/services/permissionCheck.ts`
-   * but returns a plain `{ outcome, reason }` instead of writing to an
-   * Express response.
+   * MCP tool. Two-phase mutex policy: Phase A (load + decide /
+   * detect-modal-needed + fast-path save) under the shared settings
+   * lock, modal wait OUTSIDE the lock, Phase B (re-load + persist
+   * final outcome) re-acquires it. Returns a plain
+   * `{ outcome, reason }`.
    *
    * Fast path: if the master toggle is off, or the command is already
    * in the allowlist (allow) or not (deny), the decision is made under
@@ -143,8 +141,13 @@ export default class McpToolsPlugin extends Plugin {
    * modal can display a warning banner when activity is high.
    */
   async checkCommandPermission(
-    commandId: string,
+    rawCommandId: string,
   ): Promise<{ outcome: "allow" | "deny"; reason?: string }> {
+    // Allowlist entries are exact ids; a stray leading/trailing space
+    // in the request must not cause a spurious deny. Trim only — ids
+    // are case-sensitive by Obsidian convention, so no lowercasing.
+    const commandId = rawCommandId.trim();
+
     // Record this call in the soft-rate counter (UI warning only —
     // hard enforcement is the rate limiter in services/rateLimit.ts).
     _inProcessRateCounter.record();
@@ -154,7 +157,7 @@ export default class McpToolsPlugin extends Plugin {
       | { kind: "done"; outcome: "allow" | "deny"; reason?: string }
       | { kind: "needs-modal"; softRateLimit: number };
 
-    const phaseA: PhaseAResult = await _inProcessSettingsMutex.run(
+    const phaseA: PhaseAResult = await globalSettingsMutex.run(
       async () => {
         const settings = (await this.loadData()) ?? {};
         const perms = settings.commandPermissions ?? {};
@@ -266,7 +269,7 @@ export default class McpToolsPlugin extends Plugin {
     }
 
     // Phase B: persist outcome under the mutex.
-    await _inProcessSettingsMutex.run(async () => {
+    await globalSettingsMutex.run(async () => {
       const settings = (await this.loadData()) ?? {};
       const perms = settings.commandPermissions ?? {};
 

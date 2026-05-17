@@ -1,30 +1,32 @@
 /**
- * A minimal async mutex for serializing critical sections.
+ * A minimal async mutex for serializing critical sections, plus the
+ * process-wide settings mutex singleton (`globalSettingsMutex`).
  *
- * Used by the command-permission handler to protect the load-modify-
- * save cycle around `plugin.loadData()` / `plugin.saveData()`, which
- * otherwise races under concurrent HTTP invocations.
+ * ## Why a single process-wide settings mutex
  *
- * ## The bug we are fixing
+ * `plugin.loadData()` / `plugin.saveData()` are two independent async
+ * calls — Obsidian's default persistence is NOT atomic. Every feature
+ * that does `load → modify-its-own-slice → save` against `data.json`
+ * is therefore racing every OTHER feature that does the same: two
+ * concurrent cycles both read the same "before", each writes back
+ * "before + my slice", and the last writer silently clobbers the
+ * other slice (cross-feature lost update). Per-feature mutexes do not
+ * fix this — they only serialize a feature against itself; the file
+ * is shared, so the lock must be too. `globalSettingsMutex` is the
+ * one queue every `data.json` write site goes through.
  *
- * The original Fase 1 handler read settings, appended an audit entry,
- * and wrote settings back. Each step is independently async (there is
- * an `await` between the read and the write), so when N concurrent
- * curls hit the endpoint in the same millisecond, they all read the
- * SAME "before" state, each constructs its own "before + my entry"
- * version, and each writes back. Only the last writer wins; the
- * others are silently clobbered. Fase 2's rate-limit smoke test
- * (35 parallel fast-path calls) made the loss visible: only 3 of
- * the 35 audit entries survived.
+ * The lock wraps ONLY the settings I/O, never a modal wait or other
+ * user interaction, so the fast path stays fast and concurrent modals
+ * coexist (see `main.ts` checkCommandPermission Phase A/B).
  *
- * ## The fix
+ * ## Non-re-entrant — do NOT nest
  *
- * A single module-level mutex serializes every read/modify/write
- * cycle. Critically, the mutex is acquired ONLY around the settings
- * I/O — NOT around the modal wait. This keeps the fast path fast
- * (concurrent fast-path calls are serialized, but each critical
- * section is ~milliseconds) and lets multiple confirmation modals
- * coexist on-screen without the lock blocking progress.
+ * `run()` does not track an owner. Calling `mutex.run()` from inside
+ * another `mutex.run()` on the SAME mutex deadlocks: the inner call
+ * waits on a tail that only advances when the outer call finishes,
+ * which can't happen until the inner call returns. Any helper that
+ * itself acquires `globalSettingsMutex` must be called OUTSIDE an
+ * enclosing `.run()`.
  *
  * ## Implementation
  *
@@ -35,18 +37,14 @@
  * microtask slot correctly chain — the second call sees a tail
  * that already includes the first call's completion promise.
  *
- * ## What this is NOT
- *
- * This mutex is in-process only. It serializes within a single
- * plugin instance; it does NOT coordinate across multiple Obsidian
- * windows, multiple vaults, or multiple processes. For this feature
- * that is sufficient — Obsidian only loads one instance of a given
- * plugin per vault, and each vault has its own `data.json`.
+ * In-process only: it serializes within a single plugin instance;
+ * it does NOT coordinate across windows, vaults, or processes. That
+ * is sufficient — Obsidian loads one plugin instance per vault and
+ * each vault has its own `data.json`.
  *
  * ## Usage
  *
- *     const mutex = createMutex();
- *     await mutex.run(async () => {
+ *     await globalSettingsMutex.run(async () => {
  *       const settings = await plugin.loadData();
  *       settings.foo = "bar";
  *       await plugin.saveData(settings);
@@ -107,3 +105,11 @@ export function createMutex(): Mutex {
     },
   };
 }
+
+/**
+ * Process-wide settings mutex. Every `data.json` load→modify→save
+ * site in the plugin serializes through this single instance so
+ * concurrent writes from different features cannot clobber each
+ * other's slice. Non-re-entrant (see the file header).
+ */
+export const globalSettingsMutex: Mutex = createMutex();

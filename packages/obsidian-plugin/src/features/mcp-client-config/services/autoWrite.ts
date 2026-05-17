@@ -1,3 +1,4 @@
+import { globalSettingsMutex } from "$/features/command-permissions";
 import { logger } from "$/shared/logger";
 import { updateClaudeDesktopConfig } from "./claudeDesktop";
 
@@ -70,27 +71,25 @@ export async function getAutoWriteEnabled(
 }
 
 /**
- * Atomically persist the flag. Reads the current `data.json`, mutates
- * only the `mcpClientConfig.autoWriteClaudeDesktopConfig` field, writes
- * the merged object back. Other keys are preserved.
- *
- * Note: the existing settings-lock mutex in
- * `command-permissions/services/settingsLock` is the canonical pattern
- * for serialized writes. The auto-write toggle is touched only from
- * the Settings UI (single user-driven event) so we read/write directly
- * here; the migration flow and regenerate flow READ the flag, never
- * write it.
+ * Persist the flag. Reads the current `data.json`, mutates only the
+ * `mcpClientConfig.autoWriteClaudeDesktopConfig` field, writes the
+ * merged object back. Other keys are preserved. Serialized through
+ * the shared `globalSettingsMutex` so this write cannot clobber a
+ * concurrent settings write from another feature (data.json is not
+ * atomic).
  */
 export async function setAutoWriteEnabled(
   plugin: PluginLike,
   enabled: boolean,
 ): Promise<void> {
-  const data =
-    ((await plugin.loadData()) as Record<string, unknown> | null) ?? {};
-  const slice = (data[DATA_KEY] as Record<string, unknown> | undefined) ?? {};
-  await plugin.saveData({
-    ...data,
-    [DATA_KEY]: { ...slice, [FLAG_KEY]: enabled },
+  await globalSettingsMutex.run(async () => {
+    const data =
+      ((await plugin.loadData()) as Record<string, unknown> | null) ?? {};
+    const slice = (data[DATA_KEY] as Record<string, unknown> | undefined) ?? {};
+    await plugin.saveData({
+      ...data,
+      [DATA_KEY]: { ...slice, [FLAG_KEY]: enabled },
+    });
   });
 }
 

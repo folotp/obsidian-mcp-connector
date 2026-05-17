@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { createMutex } from "./settingsLock";
+import { createMutex, globalSettingsMutex } from "./settingsLock";
 
 /**
  * Tests for the async mutex used to serialize command-permission
@@ -70,11 +70,10 @@ describe("createMutex", () => {
   });
 
   test("distinct mutex instances don't block each other", async () => {
-    // A second mutex must be completely independent. This is the
-    // reason the mutex is a local instance (not a module-level
-    // singleton): if the command-permission handler ever shares a
-    // process with another feature that also uses a mutex, they
-    // must not interfere.
+    // A second mutex must be completely independent — distinct
+    // instances share no queue. (Production deliberately uses ONE
+    // shared instance, `globalSettingsMutex`, for data.json; this
+    // test guards the primitive's per-instance isolation.)
     const m1 = createMutex();
     const m2 = createMutex();
     const events: string[] = [];
@@ -141,5 +140,50 @@ describe("createMutex", () => {
 
     // All 35 must have executed, in the exact enqueue order.
     expect(order).toEqual(Array.from({ length: 35 }, (_, i) => i));
+  });
+});
+
+describe("globalSettingsMutex (cross-feature lost-update fix)", () => {
+  // Models the confirmed bug: two unrelated features ("A" and "B")
+  // both load the SAME data.json, mutate their OWN slice, and save.
+  // load/save are independently async (non-atomic Obsidian
+  // persistence). Routing every cycle through the one shared mutex
+  // must guarantee neither slice is ever clobbered, no matter how
+  // they interleave.
+  test("N concurrent A/B writers through the shared mutex lose no slice", async () => {
+    let store: { a?: number[]; b?: number[] } = {};
+    const loadData = async () => structuredClone(store);
+    const saveData = async (next: typeof store) => {
+      // Force a context switch between read and write — this is what
+      // makes the lost-update race observable without the mutex.
+      await Promise.resolve();
+      store = structuredClone(next);
+    };
+
+    const writeSlice = (slice: "a" | "b", value: number) =>
+      globalSettingsMutex.run(async () => {
+        const data = await loadData();
+        const arr = data[slice] ?? [];
+        arr.push(value);
+        data[slice] = arr;
+        await saveData(data);
+      });
+
+    const N = 20;
+    await Promise.all(
+      Array.from({ length: N }, (_, i) => [
+        writeSlice("a", i),
+        writeSlice("b", i),
+      ]).flat(),
+    );
+
+    // Every write from both features survived — no cross-feature
+    // clobber.
+    expect((store.a ?? []).slice().sort((x, y) => x - y)).toEqual(
+      Array.from({ length: N }, (_, i) => i),
+    );
+    expect((store.b ?? []).slice().sort((x, y) => x - y)).toEqual(
+      Array.from({ length: N }, (_, i) => i),
+    );
   });
 });
