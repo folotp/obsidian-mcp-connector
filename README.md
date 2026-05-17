@@ -278,6 +278,13 @@ If you encounter issues:
 - **Check**: open the plugin settings → **Quick setup for clients** → the **Node.js detection** panel reports whether `node` and `npx` are reachable on the path Obsidian inherits when launched from Finder/Spotlight (a common gap on macOS for users who installed Node via Homebrew).
 - **Fix**: if the panel shows "Not found", click **Install via Homebrew** (macOS) or follow the platform-specific link to install Node manually. Restart Obsidian after installing.
 
+### "Server disconnected" after updating from a pre-0.4.9 build
+
+- **Symptom**: Claude Desktop shows `MCP mcp-tools-istefox: Server disconnected`; its logs show `ECONNREFUSED 127.0.0.1:<port>`.
+- **Cause**: pre-0.4.9 builds could fail to release the server port on Obsidian reload/disable and "walk" to the next one (27200 → 27201 → …), so `claude_desktop_config.json` may point at an old walked port while 0.4.9 now correctly binds the default. 0.4.9 fixes the walk; the stale config is a one-time leftover from the old build, not a recurring issue.
+- **Fix**: **fully quit Claude Desktop (Cmd+Q on macOS) and reopen it** — Claude Desktop only re-reads `claude_desktop_config.json` at launch; closing the window or an in-app restart is not enough. With auto-write on (the default) the plugin keeps the config in sync afterward.
+- Still failing? Confirm the port in `claude_desktop_config.json` (`http://127.0.0.1:<port>/mcp`) matches the port the plugin logs on start (Settings → **Open Logs**), ensure only one Obsidian vault has the plugin enabled (two instances contend for the port), then fully restart Claude Desktop again.
+
 ### `tool/call` returns HTTP 401
 
 - The bearer token in your client config does not match the plugin's current token. Open the plugin settings → **Bearer token** → click **Show** to reveal the current token and **Copy** to copy it. Update your client config and restart the client.
