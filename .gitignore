@@ -184,6 +184,10 @@ main.js
 bin/
 docs/planning/
 data.json
+# semantic-search store runtime artifacts (written at the repo root by
+# dev/test runs that exercise the vector store; never committed)
+embeddings.bin
+embeddings.index.json*
 tmp/
 
 # Local strategy / private notes & session scaffolding (never in the public repo)
