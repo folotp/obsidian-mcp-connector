@@ -317,6 +317,7 @@ Items in flight, ordered by priority:
 
 1. **Next version cut**: when ready, branch + PR a `manifest.json`/`package.json`/`versions.json`/`CHANGELOG` bump + tag push; CI `release.yml` produces plugin-only release artifacts (reproducible bundle + build-provenance attestation). Roll forward only — never reuse or move a published `0.*` tag.
 2. **Owner-only, non-blocking**: (a) GitHub fork-network detach is CLOSED won't-do (only path is destructive — accept the "forked from" badge + the suppressed Contributors UI); (b) Windows #100 load smoke unperformed but field-corroborated by the reporter — non-blocking; roll forward to a patch release if it ever regresses.
+3. **CI/release Bun-pin divergence (low; deferred by #150).** `ci.yml` build-smoke runs on `bun-version: latest`, `release.yml` pins `1.3.12`. #150 deliberately left them split — the #149 svelte-patch class is Bun-version-independent under `--frozen-lockfile`, and pinning CI could mask a `latest`-only break. Revisit only if a CI-green-on-`latest` build ever diverges from the pinned release build.
 
 The community-store listing is DONE (accepted & listed 2026-05-16). The fork-era external-contribution pipeline tracking no longer applies — the project is standalone; contributions are evaluated per-PR on their merits.
 ## Soak preflight: chain identification first
