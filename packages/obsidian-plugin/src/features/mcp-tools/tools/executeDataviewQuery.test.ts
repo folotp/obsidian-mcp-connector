@@ -141,6 +141,52 @@ describe("execute_dataview_query", () => {
       );
       expect(body.query).toBe("TABLE");
     });
+
+    test("api.query() throws → structured dataview_query_failed (not unhandled rejection)", async () => {
+      setMockDataviewState("ready");
+      setMockDataviewQueryImpl(() => {
+        throw new Error("Dataview internal error: index corrupted");
+      });
+      const res = await executeDataviewQueryHandler({
+        arguments: { query: 'TABLE FROM ""' },
+        app: mockApp(),
+      });
+      expect(res.isError).toBe(true);
+      const body = parse(res);
+      expect(body.errorCode).toBe("dataview_query_failed");
+      expect(body.error).toContain("index corrupted");
+    });
+
+    test("non-serialisable result (circular ref) → structured dataview_query_failed", async () => {
+      setMockDataviewState("ready");
+      const circular: Record<string, unknown> = { type: "table" };
+      circular["self"] = circular;
+      setMockDataviewQueryImpl(() => ({ successful: true, value: circular }));
+      const res = await executeDataviewQueryHandler({
+        arguments: { query: 'TABLE FROM ""' },
+        app: mockApp(),
+      });
+      expect(res.isError).toBe(true);
+      const body = parse(res);
+      expect(body.errorCode).toBe("dataview_query_failed");
+      expect(body.error).toMatch(/non-serialisable/i);
+    });
+
+    test("error field coerced via String() when Dataview returns Error object", async () => {
+      setMockDataviewState("ready");
+      setMockDataviewQueryImpl(() => ({
+        successful: false,
+        error: new Error("Error object from Dataview") as unknown as string,
+      }));
+      const res = await executeDataviewQueryHandler({
+        arguments: { query: "TABLE" },
+        app: mockApp(),
+      });
+      expect(res.isError).toBe(true);
+      const body = parse(res);
+      expect(body.errorCode).toBe("dataview_query_failed");
+      expect(body.error).toContain("Error object from Dataview");
+    });
   });
 
   describe("sourcePath flows through to Dataview's originFile", () => {
@@ -167,6 +213,7 @@ describe("execute_dataview_query", () => {
         app: mockApp(),
       });
       const calls = getMockDataviewCalls();
+      expect(calls).toHaveLength(1);
       expect(calls[0].originFile).toBeUndefined();
     });
   });

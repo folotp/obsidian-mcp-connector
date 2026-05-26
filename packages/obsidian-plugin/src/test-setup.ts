@@ -1164,6 +1164,10 @@ export function mockApp(): App {
           },
         };
       },
+      has: (_target, prop) => {
+        if (prop !== "dataview") return false;
+        return _mockDataview.state !== "absent";
+      },
     }),
   };
 

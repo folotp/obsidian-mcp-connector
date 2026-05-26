@@ -103,19 +103,45 @@ export async function executeDataviewQueryHandler(
     );
   }
 
-  const result = await plugin.api.query(query, sourcePath);
+  let result: DataviewResult<unknown>;
+  try {
+    result = await plugin.api.query(query, sourcePath);
+  } catch (err) {
+    // Dataview threw internally (broken index, torn-down plugin, etc.).
+    // Convert to a structured isError response rather than an unhandled rejection.
+    return errorPayload(
+      String(err instanceof Error ? err.message : err),
+      "dataview_query_failed",
+      { query },
+    );
+  }
 
   if (!result.successful) {
     // DQL parse / evaluation error — surface Dataview's own message verbatim
     // so the caller sees exactly what Dataview rejected. DQL validation is
-    // Dataview's job, not ours.
-    return errorPayload(result.error, "dataview_query_failed", { query });
+    // Dataview's job, not ours. Use String() in case the real plugin returns
+    // an Error object rather than a plain string.
+    return errorPayload(String(result.error), "dataview_query_failed", { query });
+  }
+
+  // Dataview can return rich objects (Link, DateTime, TFile) that contain
+  // circular references or non-serialisable values. Catch and surface as a
+  // structured error rather than an unhandled rejection.
+  let text: string;
+  try {
+    text = JSON.stringify(result.value, null, 2);
+  } catch {
+    return errorPayload(
+      "Dataview result contains non-serialisable values (circular reference or BigInt). Add LIMIT or simplify the query to reduce result complexity.",
+      "dataview_query_failed",
+      { query },
+    );
   }
 
   // Success: serialise the typed result as the standard MCP text payload.
   // No `isError` on success per the property-tools convention.
   return {
-    content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }],
+    content: [{ type: "text", text }],
   };
 }
 
