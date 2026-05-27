@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), version
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-05-27
+
+### Fixed
+
+- **Migration detector false positive on absolute npx path.** The legacy-install detector used strict string equality (`command === "npx"`), causing any absolute path to the npx binary (e.g. `/opt/homebrew/bin/npx`) to be falsely classified as a leftover 0.3.x config entry. Changed to `path.basename(command) === "npx"` so any absolute path whose basename is `npx` is correctly recognised as the current 0.4.x shape. Also corrected the lingering-legacy notice text, which referenced a settings section that does not exist. (#188)
+
 ## [0.8.0] — 2026-05-26
 
 ### Added
