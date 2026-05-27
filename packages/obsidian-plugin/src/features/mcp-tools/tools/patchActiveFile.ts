@@ -62,24 +62,9 @@ export async function patchActiveFileHandler(
   return await applyPatch(ctx.app, file as TFile, ctx.arguments);
 }
 
-/**
- * Core patch logic — exported for reuse by patchVaultFile (T13). T13's handler
- * resolves the file by path, then delegates here.
- *
- * Per-target-type default for createTargetIfMissing (per source 0.3.7 fix +
- * issue #71):
- *   heading + frontmatter → true  (preserve 0.2.x behaviour)
- *   block → false  (fail loud on unresolved id; safer per #71 block-in-table
- *                   corruption risk)
- *
- * Args:
- *   app: Obsidian App instance.
- *   file: The TFile to patch.
- *   args: Patch parameters validated by patchActiveFileSchema.
- *
- * Returns:
- *   MCP result object, with isError=true on failure.
- */
+// Per-target-type default for createTargetIfMissing (0.3.7 fix + issue #71):
+//   heading + frontmatter → true  (preserve 0.2.x behaviour)
+//   block → false  (fail loud on unresolved id; #71 block-in-table corruption risk)
 export async function applyPatch(
   app: App,
   file: TFile,
