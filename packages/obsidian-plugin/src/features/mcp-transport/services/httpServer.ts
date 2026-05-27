@@ -4,6 +4,7 @@ import {
   type Server,
   type ServerResponse,
 } from "node:http";
+import { logger } from "$/shared";
 import { runMiddleware } from "./middleware";
 import { bindWithFallback } from "./port";
 import { ERROR_CODES, MAX_REQUEST_BODY_BYTES, PORT_RANGE } from "../constants";
@@ -80,12 +81,10 @@ export async function startHttpServer(
     void config.requestHandler(req, res).catch((err) => {
       if (!res.headersSent) res.writeHead(500);
       res.end();
-      // TODO(Task 12): replace with logger.error("handler failed", { err })
       // Intentionally NOT rethrowing: inside a .catch() of a void-prefixed
       // promise, throwing creates an unhandled rejection which crashes the
       // Electron renderer under default Node settings.
-      // eslint-disable-next-line no-console
-      console.error("[mcp-transport] request handler failed:", err);
+      logger.error("[mcp-transport] request handler failed", { error: err });
     });
   });
 

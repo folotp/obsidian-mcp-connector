@@ -9,6 +9,7 @@ import {
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { App } from "obsidian";
 import type McpToolsPlugin from "$/main";
+import { logger } from "$/shared";
 import { ToolRegistryClass } from "./toolRegistry";
 import type { ToolRegistry } from "./toolRegistry";
 import { PromptRegistryClass } from "./promptRegistry";
@@ -120,12 +121,12 @@ export async function createMcpService(
       try {
         await transport.close();
       } catch (closeError) {
-        console.error("[mcp] transport.close failed", closeError);
+        logger.error("[mcp] transport.close failed", { error: closeError });
       }
       try {
         await server.close();
       } catch (closeError) {
-        console.error("[mcp] server.close failed", closeError);
+        logger.error("[mcp] server.close failed", { error: closeError });
       }
     }
   };

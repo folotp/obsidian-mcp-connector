@@ -45,17 +45,6 @@ export type PatchVaultFileContext = {
   app: App;
 };
 
-/**
- * Handler for the patch_vault_file MCP tool. Resolves the file by vault-relative
- * path and delegates to the shared applyPatch helper.
- *
- * Args:
- *   ctx: Context containing the vault App and the tool arguments.
- *
- * Returns:
- *   An MCP result object. Sets isError: true if the file is not found or if
- *   the patch operation fails (e.g., block not found with createTargetIfMissing=false).
- */
 export async function patchVaultFileHandler(
   ctx: PatchVaultFileContext,
 ): Promise<{

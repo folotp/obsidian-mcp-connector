@@ -110,24 +110,6 @@ export type FetchContext = {
   };
 };
 
-/**
- * Handles the fetch MCP tool request.
- *
- * Fetches the given URL using Obsidian's requestUrl API, converts HTML to
- * Markdown using Turndown (unless format="html"), and applies pagination
- * logic (startIndex and maxLength).
- *
- * Returns:
- *   - MCP-formatted response with one text content block
- *   - If content exceeds maxLength, includes a truncation hint with instructions
- *     for fetching the next chunk via startIndex
- *
- * Args:
- *   ctx: Context containing url, format, maxLength, startIndex
- *
- * Returns:
- *   MCP tool result with content array
- */
 export async function fetchHandler(ctx: FetchContext): Promise<{
   content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
