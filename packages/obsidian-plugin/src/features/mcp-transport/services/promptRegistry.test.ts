@@ -16,7 +16,11 @@ describe("PromptRegistryClass", () => {
         name: "greet",
         description: "A greeting prompt",
         arguments: [
-          { name: "name", description: "The name to greet", required: false as const },
+          {
+            name: "name",
+            description: "The name to greet",
+            required: false as const,
+          },
         ],
       },
     ];
@@ -27,9 +31,7 @@ describe("PromptRegistryClass", () => {
 
   test("dispatch() throws McpError(InvalidParams) when no handler is registered", async () => {
     const registry = new PromptRegistryClass();
-    await expect(
-      registry.dispatch({ name: "unknown" }),
-    ).rejects.toMatchObject({
+    await expect(registry.dispatch({ name: "unknown" })).rejects.toMatchObject({
       code: ErrorCode.InvalidParams,
     });
   });
@@ -39,9 +41,9 @@ describe("PromptRegistryClass", () => {
     registry.setHandler("*", async (_name, _args) => {
       throw new McpError(ErrorCode.InvalidParams, "Prompt not found: unknown");
     });
-    await expect(
-      registry.dispatch({ name: "unknown" }),
-    ).rejects.toBeInstanceOf(McpError);
+    await expect(registry.dispatch({ name: "unknown" })).rejects.toBeInstanceOf(
+      McpError,
+    );
   });
 
   test("dispatch() delegates to wildcard handler with correct name and args", async () => {
@@ -51,7 +53,10 @@ describe("PromptRegistryClass", () => {
       received.push({ name, args });
       return {
         messages: [
-          { role: "user", content: { type: "text", text: `Hello ${args.who ?? ""}` } },
+          {
+            role: "user",
+            content: { type: "text", text: `Hello ${args.who ?? ""}` },
+          },
         ],
       };
     });

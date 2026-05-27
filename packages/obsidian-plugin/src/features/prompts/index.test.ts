@@ -22,7 +22,10 @@ describe("prompts feature setup", () => {
   });
 
   test("registry.list() returns discovered prompts", async () => {
-    setMockFile("Prompts/greet.md", `<% tp.mcpTools.prompt("who", "Target") %>\nHello {{who}}`);
+    setMockFile(
+      "Prompts/greet.md",
+      `<% tp.mcpTools.prompt("who", "Target") %>\nHello {{who}}`,
+    );
     setMockMetadata("Prompts/greet.md", {
       frontmatter: { tags: ["mcp-tools-prompt"], description: "A greeting" },
     });

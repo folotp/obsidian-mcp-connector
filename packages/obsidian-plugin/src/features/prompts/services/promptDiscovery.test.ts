@@ -69,7 +69,10 @@ describe("discoverPrompts", () => {
   });
 
   test("includes file in Prompts/ with mcp-tools-prompt tag", async () => {
-    setMockFile("Prompts/greet.md", `<% tp.mcpTools.prompt("who", "Target") %>\nHello {{who}}`);
+    setMockFile(
+      "Prompts/greet.md",
+      `<% tp.mcpTools.prompt("who", "Target") %>\nHello {{who}}`,
+    );
     setMockMetadata("Prompts/greet.md", {
       frontmatter: { tags: ["mcp-tools-prompt"], description: "A greeting" },
     });

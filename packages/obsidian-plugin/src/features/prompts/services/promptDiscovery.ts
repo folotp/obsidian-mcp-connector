@@ -3,8 +3,7 @@ import { TFile } from "obsidian";
 import { PromptFrontmatterSchema } from "shared";
 import type { PromptListEntry } from "$/features/mcp-transport/services/promptRegistry";
 
-const TWO_ARG_PATTERN =
-  /<% tp\.mcpTools\.prompt\("([^"]+)",\s*"([^"]*)"\) %>/g;
+const TWO_ARG_PATTERN = /<% tp\.mcpTools\.prompt\("([^"]+)",\s*"([^"]*)"\) %>/g;
 const ONE_ARG_PATTERN = /<% tp\.mcpTools\.prompt\("([^"]+)"\) %>/g;
 
 export function parseArgDeclarations(

@@ -99,9 +99,8 @@ export async function createMcpService(
       ListPromptsRequestSchema,
       promptRegistry.list,
     );
-    server.server.setRequestHandler(
-      GetPromptRequestSchema,
-      (req) => promptRegistry.dispatch(req.params),
+    server.server.setRequestHandler(GetPromptRequestSchema, (req) =>
+      promptRegistry.dispatch(req.params),
     );
 
     // Stateless mode (no sessionIdGenerator) + JSON response. Per-
