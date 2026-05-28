@@ -34,7 +34,12 @@ export type EmbedTensor = { data: Float32Array; dims?: number[] };
  */
 export type PipelineFn = (
   input: string | string[],
-  opts?: { pooling?: "mean" | "cls" | "none"; normalize?: boolean },
+  opts?: {
+    pooling?: "mean" | "cls" | "none";
+    normalize?: boolean;
+    truncation?: boolean;
+    max_length?: number;
+  },
 ) => Promise<EmbedTensor>;
 
 export type PipelineFactory = (model: string) => Promise<PipelineFn>;
@@ -73,6 +78,7 @@ export interface Embedder {
 export type EmbedderOpts = {
   pipelineFactory: PipelineFactory;
   model?: string;
+  maxInputTokens?: number;
   cacheSize?: number;
   idleMs?: number;
   unloadWhenIdle?: boolean;
@@ -108,7 +114,12 @@ class EmbedderImpl implements Embedder {
 
     const promise = (async (): Promise<Float32Array> => {
       const pipe = await this.ensurePipeline();
-      const result = await pipe(text, { pooling: "mean", normalize: true });
+      const result = await pipe(text, {
+        pooling: "mean",
+        normalize: true,
+        truncation: true,
+        max_length: this.opts.maxInputTokens,
+      });
       // Copy into a fresh Float32Array so the cache holds an owned
       // reference even if the pipeline reuses internal buffers.
       return new Float32Array(result.data);

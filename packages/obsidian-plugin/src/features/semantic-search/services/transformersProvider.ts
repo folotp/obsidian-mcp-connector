@@ -60,6 +60,8 @@ class TransformersProviderImpl implements EmbeddingProvider {
         const result = await pipe(prompted, {
           pooling: "mean",
           normalize: true,
+          truncation: true,
+          max_length: this.opts.maxInputTokens,
         });
         return new Float32Array((result as EmbedTensor).data);
       }),

@@ -39,7 +39,10 @@ import {
   ALL_PROVIDER_KEYS,
   type ProviderKey,
 } from "./features/semantic-search/services/providerFactory";
-import { createNativeEmbeddingProvider } from "./features/semantic-search/services/nativeEmbeddingProvider";
+import {
+  createNativeEmbeddingProvider,
+  MAX_INPUT_TOKENS as NATIVE_MAX_INPUT_TOKENS,
+} from "./features/semantic-search/services/nativeEmbeddingProvider";
 import {
   createEmbeddingStoreRegistry,
   migrateV1FlatStore,
@@ -457,6 +460,7 @@ export default class McpToolsPlugin extends Plugin {
       });
       const embedder = createEmbedder({
         pipelineFactory: nativeDownloader.factory,
+        maxInputTokens: NATIVE_MAX_INPUT_TOKENS,
       });
       const nativeEp = createNativeEmbeddingProvider(embedder);
       const nativeStore = registry.storeFor("native-minilm-l6-v2", 384);
@@ -589,6 +593,28 @@ export default class McpToolsPlugin extends Plugin {
               _rebuildingProviders.delete(providerKey);
             });
         };
+
+        // B3: Trigger rebuild for the active provider's store that was just
+        // wiped by the migration modal. The modal's "Rebuild now" button only
+        // wipes; this makes the rebuild actually happen automatically.
+        const settingToRegistryKey: Partial<Record<string, ProviderKey>> = {
+          native: "native-minilm-l6-v2",
+          auto: "native-minilm-l6-v2",
+          "embedding-gemma": "embedding-gemma-300m",
+          "multilingual-e5-base": "multilingual-e5-base",
+          // "smart-connections" has no local store — no rebuild needed.
+        };
+        const activeRegistryKey = settingToRegistryKey[state.settings.provider];
+        if (
+          activeRegistryKey &&
+          staleProviderKeys.includes(activeRegistryKey)
+        ) {
+          if (activeRegistryKey === "native-minilm-l6-v2") {
+            state.startIndexerIfNeeded();
+          } else {
+            state.startRebuildFor(activeRegistryKey);
+          }
+        }
 
         state.teardown = async () => {
           if (indexerStarted) {
