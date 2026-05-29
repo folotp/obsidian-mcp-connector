@@ -99,7 +99,37 @@
   }
 
   async function onRebuild() {
-    const indexer = plugin.semanticSearchState?.indexer;
+    const state = plugin.semanticSearchState;
+    if (!state) {
+      new Notice("Semantic index not available yet — reload Obsidian.");
+      return;
+    }
+
+    // DLC providers maintain their own stores; route through startRebuildFor.
+    const dlcProviderKey =
+      settings.provider === "embedding-gemma"
+        ? "embedding-gemma-300m"
+        : settings.provider === "multilingual-e5-base"
+          ? "multilingual-e5-base"
+          : null;
+
+    if (dlcProviderKey) {
+      if (!state.startRebuildFor) {
+        new Notice("Rebuild not available yet — reload Obsidian.");
+        return;
+      }
+      state.startRebuildFor(dlcProviderKey);
+      new Notice("Rebuilding index in background…");
+      return;
+    }
+
+    if (settings.provider === "smart-connections") {
+      new Notice("Smart Connections manages its own index.");
+      return;
+    }
+
+    // Native / auto: use the always-on MiniLM indexer.
+    const indexer = state.indexer;
     if (!indexer) {
       new Notice("Semantic index not available yet — reload Obsidian.");
       return;
