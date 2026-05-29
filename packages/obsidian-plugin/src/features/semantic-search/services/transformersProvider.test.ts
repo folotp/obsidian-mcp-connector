@@ -167,7 +167,7 @@ describe("EmbeddingGemmaProvider", () => {
     const provider = createEmbeddingGemmaProvider(factory);
     expect(provider.providerKey).toBe("embedding-gemma-300m");
     expect(provider.dimensions).toBe(768);
-    expect(provider.maxInputTokens).toBe(2048);
+    expect(provider.maxInputTokens).toBe(512);
   });
 
   test("getModelSizeBytes returns 190 MB", () => {
