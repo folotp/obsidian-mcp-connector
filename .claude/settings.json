@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // \"\"'); [[ \"$FILE\" == *.ts ]] && bunx prettier --write \"$FILE\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"$CLAUDE_TOOL_INPUT\" | jq -r '.file_path // \"\"' | grep -qE '(bun\\.lockb|manifest\\.json)' && echo 'Blocked: use bun run version for manifest; never edit lockfile directly' >&2 && exit 2 || exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
